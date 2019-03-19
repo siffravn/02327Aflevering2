@@ -41,7 +41,7 @@ public class UserDAOImpls173998 implements IUserDAO {
 
            IUserDTO user = null;
            if (resultSet.next()){
-               user = applyData();
+               user = applyData(resultSet);
            }
            return user;
         } catch (SQLException e) {
@@ -62,7 +62,7 @@ public class UserDAOImpls173998 implements IUserDAO {
 
             List<IUserDTO> userList = new ArrayList<IUserDTO>();
             while (resultSet.next()) {
-                IUserDTO user = applyData();
+                IUserDTO user = applyData(resultSet);
                 userList.add(user);
             }
             return userList;
@@ -98,19 +98,25 @@ public class UserDAOImpls173998 implements IUserDAO {
     }
 
 
-    private IUserDTO applyData()throws DALException {
+    private IUserDTO applyData(ResultSet resultSet)throws DALException {
         IUserDTO user = new UserDTO();
-        user.setUserId(resultSet.getInt("userId"));
-        user.setUserName(resultSet.getString("userName"));
-        user.setIni(resultSet.getString("ini"));
 
-        //Extract roles as String
-        String roleString = resultSet.getString("roles");
-        //Split string by ;
-        String[] roleArray = roleString.split(";");
-        //Convert to List
-        List<String> roleList = Arrays.asList(roleArray);
-        user.setRoles(roleList);
+        try {
+            user.setUserId(resultSet.getInt("userId"));
+            user.setUserName(resultSet.getString("userName"));
+            user.setIni(resultSet.getString("ini"));
+
+            //Extract roles as String
+            String roleString = resultSet.getString("roles");
+            //Split string by ;
+            String[] roleArray = roleString.split(";");
+            //Convert to List
+            List<String> roleList = Arrays.asList(roleArray);
+            user.setRoles(roleList);
+        } catch (SQLException e) {
+            throw new DALException(e.getMessage());
+        }
+
         return user;
     }
 }
