@@ -10,7 +10,7 @@ import java.util.List;
 
 //TODO Rename class so it matches your study-number
 public class UserDAOImpls173998 implements IUserDAO {
-    //TODO Make a connection to the database
+
     private Connection createConnection() throws SQLException {
         return DriverManager.getConnection("jdbc:mysql://ec2-52-30-211-3.eu-west-1.compute.amazonaws.com/s173998?"
                 + "user=s173998&password=qRibfryD9hC7hNICVopba");
@@ -18,12 +18,17 @@ public class UserDAOImpls173998 implements IUserDAO {
 
     @Override
     public void createUser(IUserDTO user) throws DALException {
-        //TODO Implement this - Should insert a user into the db using data from UserDTO object.
 
         try (Connection c = createConnection()){
-            String values = user.getUserId() + ", '" + user.getUserName() + "', '" + user.getIni() + "', '" + user.getRoles().toString() + "'" ;
-            Statement statement = c.createStatement();
-            statement.executeUpdate("INSERT INTO userDTO VALUES(" + values +")");
+
+            PreparedStatement statement = c.prepareStatement("INSERT INTO user VALUES(?,?,?)");
+            statement.setInt(1,user.getUserId());
+            statement.setString(2, user.getUserName());
+            statement.setString(3,user.getIni());
+            statement.executeUpdate();
+
+            insertRoles(user, c);
+
         }catch (SQLException e) {
             throw new DALException(e.getMessage());
         }
@@ -32,12 +37,11 @@ public class UserDAOImpls173998 implements IUserDAO {
 
     @Override
     public IUserDTO getUser(int userId) throws DALException {
-        //TODO Implement this - should retrieve a user from db and parse it to a UserDTO
-        //TODO: Make a user from the resultset
 
        try (Connection c = createConnection()){
-           Statement statement = c.createStatement();
-           ResultSet resultSet = statement.executeQuery("SELECT * FROM user NATURAL LEFT JOIN roles WHERE ID = " +userId+ ";");
+           PreparedStatement statement = c.prepareStatement("SELECT * FROM user NATURAL LEFT JOIN roles WHERE ID = ? ;");
+           statement.setInt(1,userId);
+           ResultSet resultSet = statement.executeQuery();
 
            IUserDTO user = null;
            while (resultSet.next()){
@@ -54,7 +58,6 @@ public class UserDAOImpls173998 implements IUserDAO {
 
     @Override
     public List<IUserDTO> getUserList() throws DALException {
-        //TODO Implement this - Should retrieve ALL users from db and parse the resultset to a List of UserDTO's.
 
         try (Connection c = createConnection()){
             Statement statement = c.createStatement();
@@ -75,11 +78,20 @@ public class UserDAOImpls173998 implements IUserDAO {
 
     @Override
     public void updateUser(IUserDTO user) throws DALException {
-        //TODO Implement this - Should update a user in the db using data from UserDTO object.
 
         try (Connection c = createConnection()){
-            Statement statement = c.createStatement();
-            statement.executeUpdate("UPDATE userDTO SET username = '" + user.getUserName() +"', ini = '" +user.getIni()+ "', roles = '" +user.getRoles().toString()+ "' WHERE userID =" + user.getUserId() + ";");
+            PreparedStatement statement = c.prepareStatement("UPDATE user SET name = ?, ini = ? WHERE ID = ?");
+            statement.setString(1, user.getUserName());
+            statement.setString(2,user.getIni());
+            statement.setInt(3,user.getUserId());
+            statement.executeUpdate();
+
+            statement = c.prepareStatement("DELETE FROM roles WHERE ID = ?");
+            statement.setInt(1,user.getUserId());
+            statement.executeUpdate();
+
+            insertRoles(user, c);
+
         }catch (SQLException e) {
             throw new DALException(e.getMessage());
         }
@@ -87,11 +99,12 @@ public class UserDAOImpls173998 implements IUserDAO {
 
     @Override
     public void deleteUser(int userId) throws DALException {
-        //TODO Implement this - Should delete a user with the given userid from the db.
 
         try (Connection c = createConnection()){
-            Statement statement = c.createStatement();
-            statement.executeUpdate("DELETE FROM userDTO WHERE userID =" + userId + "");
+            PreparedStatement statement = c.prepareStatement("DELETE FROM user WHERE ID = ?");
+            statement.setInt(1,userId);
+            statement.executeUpdate();
+
         }catch (SQLException e) {
             throw new DALException(e.getMessage());
         }
@@ -112,6 +125,20 @@ public class UserDAOImpls173998 implements IUserDAO {
             }
             return user;
         } catch (SQLException e) {
+            throw new DALException(e.getMessage());
+        }
+    }
+
+    private void insertRoles(IUserDTO user, Connection c) throws DALException{
+        try {
+            for (String temp : user.getRoles()) {
+                String role = temp;
+                PreparedStatement statement = c.prepareStatement("INSERT INTO roles VALUES(?,?)");
+                statement.setInt(1, user.getUserId());
+                statement.setString(2, role);
+                statement.executeUpdate();
+            }
+        }catch (SQLException e) {
             throw new DALException(e.getMessage());
         }
     }
