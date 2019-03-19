@@ -41,7 +41,7 @@ public class UserDAOImpls173998 implements IUserDAO {
                    "SELECT *\n" +
                    "FROM user\n" +
                     "NATURAL LEFT JOIN roles\n" +
-                   "WHERE"  ID = 1");
+                   "WHERE ID = " + userId + ";");
 
            IUserDTO user = null;
            if (resultSet.next()){
@@ -62,11 +62,11 @@ public class UserDAOImpls173998 implements IUserDAO {
 
         try (Connection c = createConnection()){
             Statement statement = c.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM userDTO");
+            ResultSet resultSet = statement.executeQuery("SELECT ID FROM user");
 
             List<IUserDTO> userList = new ArrayList<>();
             while (resultSet.next()) {
-                IUserDTO user = applyData(resultSet);
+                IUserDTO user = getUser(resultSet.getInt("ID"));
                 userList.add(user);
             }
             return userList;
