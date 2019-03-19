@@ -60,7 +60,7 @@ public class UserDAOImpls173998 implements IUserDAO {
             Statement statement = c.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM userDTO");
 
-            List<IUserDTO> userList = new ArrayList<IUserDTO>();
+            List<IUserDTO> userList = new ArrayList<>();
             while (resultSet.next()) {
                 IUserDTO user = applyData(resultSet);
                 userList.add(user);
@@ -99,9 +99,9 @@ public class UserDAOImpls173998 implements IUserDAO {
 
 
     private IUserDTO applyData(ResultSet resultSet)throws DALException {
-        IUserDTO user = new UserDTO();
-
         try {
+            IUserDTO user = new UserDTO();
+
             user.setUserId(resultSet.getInt("userId"));
             user.setUserName(resultSet.getString("userName"));
             user.setIni(resultSet.getString("ini"));
@@ -113,10 +113,10 @@ public class UserDAOImpls173998 implements IUserDAO {
             //Convert to List
             List<String> roleList = Arrays.asList(roleArray);
             user.setRoles(roleList);
+
+            return user;
         } catch (SQLException e) {
             throw new DALException(e.getMessage());
         }
-
-        return user;
     }
 }
