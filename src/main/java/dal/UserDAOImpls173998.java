@@ -32,12 +32,16 @@ public class UserDAOImpls173998 implements IUserDAO {
 
     @Override
     public IUserDTO getUser(int userId) throws DALException {
-
         //TODO Implement this - should retrieve a user from db and parse it to a UserDTO
         //TODO: Make a user from the resultset
+
        try (Connection c = createConnection()){
            Statement statement = c.createStatement();
-           ResultSet resultSet = statement.executeQuery("SELECT * FROM userDTO WHERE userID =" + userId + ";");
+           ResultSet resultSet = statement.executeQuery("" +
+                   "SELECT *\n" +
+                   "FROM user\n" +
+                    "NATURAL LEFT JOIN roles\n" +
+                   "WHERE"  ID = 1");
 
            IUserDTO user = null;
            if (resultSet.next()){
@@ -106,14 +110,9 @@ public class UserDAOImpls173998 implements IUserDAO {
             user.setUserName(resultSet.getString("userName"));
             user.setIni(resultSet.getString("ini"));
 
-            //Extract roles as String
-            String roleString = resultSet.getString("roles");
-            //Split string by ;
-            String[] roleArray = roleString.split(";");
-            //Convert to List
-            List<String> roleList = Arrays.asList(roleArray);
-            user.setRoles(roleList);
-
+            while (resultSet.next()){
+                user.addRole(resultSet.getString("role"));
+            }
             return user;
         } catch (SQLException e) {
             throw new DALException(e.getMessage());
